@@ -14,19 +14,6 @@ use App\Models\Attendance;
 
 class DeviceGatewayController extends Controller
 {
-    /**
-     * Endpoint: POST /api/gateway/device-events
-     * Headers:
-     *   - X-Api-Key-Id: {key_id}
-     *   - X-Signature: {HMAC_SHA256(body, secret)}
-     * Body:
-     *   {
-     *     "uid": "RFID-...",
-     *     "event_type": "check_in|check_out|panic",
-     *     "occurred_at": "2025-12-11T12:35:00Z",
-     *     "meta": { ... }
-     *   }
-     */
     public function ingest(Request $req, HmacClientValidator $validator)
     {
         $keyId = (string) $req->header('X-Api-Key-Id');
