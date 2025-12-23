@@ -2,6 +2,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Jobs\SendAttendanceNotification;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
 
@@ -126,7 +127,7 @@ class DeviceGatewayController extends Controller
         }
 
         $att->save();
-        dispatch(new \App\Jobs\SendAttendanceNotification($att->id));
+        dispatch(new SendAttendanceNotification($att->id));
         return response()->json(['ok' => true, 'attendance_id' => $att->id]);
 
     }

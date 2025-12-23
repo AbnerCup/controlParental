@@ -25,6 +25,6 @@ class ApiClient extends Model
 
     public function school()
     {
-        return $this->belongsTo(\App\Models\School::class);
+        return $this->belongsTo(School::class);
     }
 }

@@ -29,10 +29,10 @@ class Notification extends Model
 
     public function school()
     {
-        return $this->belongsTo(\App\Models\School::class);
+        return $this->belongsTo(School::class);
     }
     public function guardian()
     {
-        return $this->belongsTo(\App\Models\Guardian::class);
+        return $this->belongsTo(Guardian::class);
     }
 }
