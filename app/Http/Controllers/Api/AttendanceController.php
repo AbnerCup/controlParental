@@ -108,4 +108,160 @@ class AttendanceController extends Controller
             'attendance' => $formatted
         ]);
     }
+    public function index(Request $request)
+    {
+        $user = $request->user();
+
+        if (!$user->hasAnyRole(['admin', 'school_admin'])) {
+            return response()->json(['error' => 'No autorizado'], 403);
+        }
+
+        $query = DB::table('attendances as a')
+            ->join('students as s', 'a.student_id', '=', 's.id')
+            ->join('grades as g', 's.grade_id', '=', 'g.id')
+            ->join('schools as sc', 's.school_id', '=', 'sc.id');
+
+        // Filtro por escuela (school_admin solo ve su escuela)
+        if ($user->hasRole('school_admin')) {
+            $schoolIds = $user->schools()->pluck('schools.id');
+            $query->whereIn('sc.id', $schoolIds);
+        }
+
+        // Filtros
+        if ($request->filled('school_id')) {
+            $query->where('sc.id', $request->school_id);
+        }
+
+        if ($request->filled('student_id')) {
+            $query->where('s.id', $request->student_id);
+        }
+
+        if ($request->filled('date_from')) {
+            $query->where('a.class_date', '>=', $request->date_from);
+        }
+
+        if ($request->filled('date_to')) {
+            $query->where('a.class_date', '<=', $request->date_to);
+        }
+
+        if ($request->filled('status')) {
+            $query->where('a.status', $request->status);
+        }
+
+        // Seleccionar campos
+        $query->select(
+            'a.id',
+            'a.class_date',
+            'a.status',
+            'a.check_in_at',
+            'a.check_out_at',
+            'a.method',
+            's.id as student_id',
+            's.first_name',
+            's.last_name',
+            's.student_code',
+            'g.name as grade',
+            'sc.name as school'
+        )->orderBy('a.class_date', 'desc')->orderBy('s.last_name');
+
+        // Paginación
+        $perPage = $request->get('per_page', 50);
+        $attendances = $query->paginate($perPage);
+
+        return response()->json([
+            'success' => true,
+            'data' => $attendances
+        ]);
+    }
+
+    public function storeManual(Request $request)
+    {
+        $user = $request->user();
+
+        if (!$user->hasAnyRole(['admin', 'school_admin', 'operator'])) {
+            return response()->json(['error' => 'No autorizado'], 403);
+        }
+
+        $validated = $request->validate([
+            'student_id' => 'required|exists:students,id',
+            'class_date' => 'required|date',
+            'event_type' => 'required|in:check_in,check_out',
+            'occurred_at' => 'required|date',
+            'status' => 'in:present,late,absent,left_early',
+            'notes' => 'nullable|string'
+        ]);
+
+        // Verificar permisos sobre el estudiante
+        $student = DB::table('students as s')
+            ->where('s.id', $validated['student_id'])
+            ->first();
+
+        if (
+            $user->hasRole('school_admin') &&
+            !$user->schools()->where('schools.id', $student->school_id)->exists()
+        ) {
+            return response()->json(['error' => 'No autorizado para este estudiante'], 403);
+        }
+
+        DB::transaction(function () use ($validated, $user, $student) {
+            // 1. Registrar evento crudo
+            DB::table('attendance_events')->insert([
+                'school_id' => $student->school_id,
+                'student_id' => $validated['student_id'],
+                'event_type' => $validated['event_type'],
+                'source' => 'manual',
+                'occurred_at' => $validated['occurred_at'],
+                'actor_user_id' => $user->id,
+                'payload' => json_encode(['notes' => $validated['notes'] ?? '']),
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+
+            // 2. Actualizar/crear asistencia diaria
+            $attendance = DB::table('attendances')
+                ->where('student_id', $validated['student_id'])
+                ->where('class_date', $validated['class_date'])
+                ->first();
+
+            if ($attendance) {
+                // Actualizar existente
+                if ($validated['event_type'] === 'check_in') {
+                    DB::table('attendances')
+                        ->where('id', $attendance->id)
+                        ->update([
+                            'check_in_at' => $validated['occurred_at'],
+                            'status' => $validated['status'] ?? 'present',
+                            'method' => 'manual',
+                            'updated_at' => now(),
+                        ]);
+                } else {
+                    DB::table('attendances')
+                        ->where('id', $attendance->id)
+                        ->update([
+                            'check_out_at' => $validated['occurred_at'],
+                            'method' => 'manual',
+                            'updated_at' => now(),
+                        ]);
+                }
+            } else {
+                // Crear nuevo
+                DB::table('attendances')->insert([
+                    'school_id' => $student->school_id,
+                    'student_id' => $validated['student_id'],
+                    'class_date' => $validated['class_date'],
+                    'check_in_at' => $validated['event_type'] === 'check_in' ? $validated['occurred_at'] : null,
+                    'check_out_at' => $validated['event_type'] === 'check_out' ? $validated['occurred_at'] : null,
+                    'status' => $validated['status'] ?? 'present',
+                    'method' => 'manual',
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+            }
+        });
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Asistencia manual registrada'
+        ]);
+    }
 }
