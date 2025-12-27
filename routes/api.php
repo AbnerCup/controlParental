@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Api\AttendanceController;
 use App\Http\Controllers\Api\DashboardController;
+use App\Http\Controllers\Api\PanicController;
 use App\Http\Controllers\Api\ReportController;
 use App\Http\Controllers\Api\SchoolController;
 use Illuminate\Support\Facades\Route;
@@ -31,4 +32,11 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/lates', [ReportController::class, 'lateReport']);
         Route::get('/absences', [ReportController::class, 'absenceReport']);
     });
+    // routes/api.php - dentro de auth:sanctum
+    Route::prefix('panic')->group(function () {
+        Route::post('/trigger', [PanicController::class, 'trigger']);
+        Route::get('/events', [PanicController::class, 'list']);
+        Route::post('/events/{id}/resolve', [PanicController::class, 'resolve']);
+    });
 });
+

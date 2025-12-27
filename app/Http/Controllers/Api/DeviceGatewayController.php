@@ -17,8 +17,9 @@ class DeviceGatewayController extends Controller
 {
     public function ingest(Request $req, HmacClientValidator $validator)
     {
-        $keyId = (string) $req->header('X-Api-Key-Id');
-        $signature = (string) $req->header('X-Signature');
+        $keyId = (string) $req->header('api_key_id');     // <-- key_id del cliente
+        $signature = (string) $req->header('api_signature'); // <-- HMAC
+
         $rawBody = $req->getContent();
 
         $apiClient = $validator->validate($keyId, $signature, $rawBody);
