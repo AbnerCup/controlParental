@@ -17,54 +17,18 @@ const Login = ({ onLogin }) => {
         setError('');
 
         try {
-            // Llamada REAL a tu endpoint de login
             const response = await api.post('/login', credentials);
 
-            if (response.data.success || response.data.token) {
-                // Guardar token
-                localStorage.setItem('token', response.data.token || 'demo-token');
-                localStorage.setItem('user', JSON.stringify(response.data.user || {
-                    id: 1,
-                    name: 'Administrador',
-                    email: credentials.email,
-                    role: 'admin'
-                }));
+            if (response.data.success) {
+                localStorage.setItem('token', response.data.token);
+                localStorage.setItem('user', JSON.stringify(response.data.user));
 
-                onLogin(response.data.user || { name: 'Admin' });
-            } else {
-                setError(response.data.message || 'Credenciales incorrectas');
+                onLogin(response.data.user);
+
+                window.location.href = '/dashboard';
             }
         } catch (err) {
-            console.log('Error login:', err);
-
-            // Si el endpoint no existe, usar modo demo
-            if (err.response?.status === 404) {
-                // Modo demo: permitir cualquier credencial
-                localStorage.setItem('token', 'demo-token-' + Date.now());
-                localStorage.setItem('user', JSON.stringify({
-                    id: 1,
-                    name: 'Administrador Demo',
-                    email: credentials.email || 'demo@schooltrack.com',
-                    role: 'admin'
-                }));
-
-                onLogin({ name: 'Admin Demo' });
-            } else {
-                setError('Error de conexión: ' + err.message);
-            }
-        } finally {
-            setLoading(false);
         }
-    };
-
-    const handleDemoLogin = () => {
-        setCredentials({
-            email: 'admin@schooltrack.com',
-            password: 'admin123'
-        });
-        setTimeout(() => {
-            document.querySelector('form').dispatchEvent(new Event('submit'));
-        }, 500);
     };
 
     return (
@@ -131,15 +95,6 @@ const Login = ({ onLogin }) => {
                     </button>
                 </form>
 
-                <button
-                    className="demo-btn"
-                    type="button"
-                    onClick={handleDemoLogin}
-                    disabled={loading}
-                >
-                    <i className="bi bi-lightning-fill" style={{ marginRight: '8px' }}></i>
-                    Usar credenciales de demostración
-                </button>
 
                 <p className="register">
                     ¿No tienes una cuenta? <span onClick={() => alert('Contacta al administrador para registrarte')}>Solicitar acceso</span>
