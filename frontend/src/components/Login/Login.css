@@ -1,17 +1,17 @@
 .login-card {
-    background: white;
-    border-radius: 20px;
+    border-radius: 35px;
     overflow: hidden;
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
     display: flex;
-    min-height: 550px;
+    width: 95vw;
+    overflow: hidden;
+    margin-left: 75px;
 }
 
-/* LEFT SIDE */
 .login-left {
     flex: 1;
     background: linear-gradient(135deg, #4361ee 0%, #3a0ca3 100%);
-    padding: 40px;
+    padding: 60px;
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -22,12 +22,12 @@
 
 .lock-box {
     text-align: center;
-    max-width: 280px;
+    max-width: 350px;
 }
 
 .lock-icon {
-    font-size: 60px;
-    margin-bottom: 30px;
+    font-size: 135px;
+    margin-bottom: 20px;
     animation: float 3s ease-in-out infinite;
 }
 
@@ -84,26 +84,27 @@
     border-color: white;
 }
 
-/* RIGHT SIDE */
 .login-right {
-    flex: 1;
-    padding: 50px 40px;
+    flex: 1.2;
+    padding: 80px 60px;
     display: flex;
     flex-direction: column;
     justify-content: center;
+    background: white;
+    min-height: 100vh;
 }
 
 .login-right h3 {
     color: #333;
-    margin-bottom: 10px;
-    font-size: 24px;
-    font-weight: 600;
+    margin-bottom: 15px;
+    font-size: 32px;
+    font-weight: 700;
 }
 
 .login-right>p {
     color: #666;
-    margin-bottom: 30px;
-    font-size: 14px;
+    margin-bottom: 40px;
+    font-size: 16px;
 }
 
 .social {
@@ -140,13 +141,13 @@
 
 .input.dark {
     width: 100%;
-    padding: 12px 20px;
-    border-radius: 10px;
+    padding: 16px 24px;
+    border-radius: 12px;
     border: 2px solid #e0e0e0;
     background: white;
     color: #333;
-    font-size: 16px;
-    margin-bottom: 20px;
+    font-size: 18px;
+    margin-bottom: 25px;
 }
 
 .input.dark::placeholder {
@@ -193,12 +194,12 @@
 
 .btn-login {
     width: 100%;
-    padding: 15px;
+    padding: 18px;
     background: linear-gradient(135deg, #4361ee 0%, #3a0ca3 100%);
     color: white;
     border: none;
-    border-radius: 10px;
-    font-size: 16px;
+    border-radius: 12px;
+    font-size: 18px;
     font-weight: 600;
     cursor: pointer;
     transition: all 0.3s ease;
@@ -283,16 +284,20 @@
 /* Demo Button */
 .demo-btn {
     width: 100%;
-    padding: 12px;
+    padding: 16px;
+    /* Aumenta padding */
     background: #f8f9fa;
     color: #4361ee;
     border: 2px solid #e0e0e0;
-    border-radius: 10px;
-    font-size: 14px;
+    border-radius: 12px;
+    /* Bordes más redondeados */
+    font-size: 16px;
+    /* Aumenta tamaño de letra */
     font-weight: 600;
     cursor: pointer;
     transition: all 0.3s ease;
-    margin-top: 10px;
+    margin-top: 15px;
+    /* Más espacio */
 }
 
 .demo-btn:hover {
@@ -300,24 +305,50 @@
     border-color: #4361ee;
 }
 
-/* Responsive */
+
+@media (min-width: 1200px) {
+    .login-card {
+        max-width: 90vw;
+        height: 90vh;
+    }
+
+    .lock-box {
+        max-width: 400px;
+    }
+}
+
 @media (max-width: 768px) {
     .login-card {
         flex-direction: column;
-        max-width: 400px;
+        max-width: 100%;
+        /* Ocupa todo el ancho */
+        min-height: 100vh;
+        /* Altura completa */
+        border-radius: 0;
+        /* Sin bordes redondeados */
     }
 
     .login-left {
-        padding: 30px 20px;
-        min-height: 200px;
+        padding: 50px 30px;
+        /* Padding ajustado */
+        min-height: 40vh;
+        /* Altura proporcional */
     }
 
     .login-right {
-        padding: 30px 20px;
+        padding: 50px 30px;
+        /* Padding ajustado */
+        min-height: 60vh;
+        /* Altura proporcional */
     }
 
     .lock-icon {
-        font-size: 40px;
-        margin-bottom: 20px;
+        font-size: 60px;
+        /* Tamaño ajustado */
+        margin-bottom: 30px;
+    }
+
+    .login-right h3 {
+        font-size: 24px;
     }
 }

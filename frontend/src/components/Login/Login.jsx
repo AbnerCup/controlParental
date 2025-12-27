@@ -72,7 +72,7 @@ const Login = ({ onLogin }) => {
             <div className="login-left">
                 <div className="lock-box">
                     <div className="lock-icon">🔐</div>
-                    <h2 style={{ marginBottom: '20px', fontSize: '28px' }}>Control Parental</h2>
+                    <h2 style={{ marginBottom: '20px', fontSize: '40px' }}>Control Parental</h2>
                     <p style={{ opacity: 0.8, textAlign: 'center', lineHeight: 1.6 }}>
                         Sistema de gestión escolar
                         <br />
