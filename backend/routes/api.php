@@ -35,7 +35,7 @@ Route::post('/login', function (Request $request) {
             ], 401);
         }
 
-        $roles = $user->roles()->pluck('name')->toArray();
+        $roles = $user->roles()->pluck('key')->toArray();
         $schools = $user->schools()->pluck('schools.id', 'schools.name')->toArray();
 
         $token = $user->createToken('api-token')->plainTextToken;
