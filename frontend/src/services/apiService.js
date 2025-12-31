@@ -17,15 +17,16 @@ export const apiService = {
     getAbsenceReport: () => api.get('/admin/reports/absences'),
 
     // PANIC
-    triggerPanic: (data) => api.post('/api/panic/trigger', data),
-    getPanicEvents: () => api.get('/api/panic/events'),
-    resolvePanic: (id) => api.post(`/api/panic/events/${id}/resolve`),
+    triggerPanic: (data) => api.post('/panic/trigger', data),
+    getPanicEvents: () => api.get('/panic/events'),
+    resolvePanic: (id, data) => api.post(`/panic/events/${id}/resolve`, data),
+    acknowledgePanic: (id) => api.post(`/panic/events/${id}/acknowledge`),
 
     // SCHOOLS
     getSchools: () => api.get('/admin/schools'),
     getSchoolStudents: (schoolId) => api.get(`/admin/schools/${schoolId}/students`),
 
     // PARENT
-    getParentStudents: () => api.get('/api/parent/students'),
-    getStudentAttendance: (studentId) => api.get(`/api/parent/attendance/${studentId}`),
+    getParentStudents: () => api.get('/parent/students'),
+    getStudentAttendance: (studentId) => api.get(`/parent/attendance/${studentId}`),
 };

@@ -94,6 +94,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/trigger', [PanicController::class, 'trigger']);
         Route::get('/events', [PanicController::class, 'list']);
         Route::post('/events/{id}/resolve', [PanicController::class, 'resolve']);
+        Route::post('/events/{id}/acknowledge', [PanicController::class, 'acknowledge']);
     });
 });
 

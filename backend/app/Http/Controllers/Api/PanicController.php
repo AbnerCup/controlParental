@@ -93,12 +93,14 @@ class PanicController extends Controller
                 'p.note',
                 'p.priority',
                 'p.resolved',
+                'p.resolved_by_user_id', // <--- FUNDAMENTAL: Para saber si está "En proceso"
                 'p.triggered_at',
                 'p.resolved_at',
                 's.id as student_id',
                 's.first_name as student_first_name',
                 's.last_name as student_last_name',
                 'sc.name as school_name',
+                'g.phone as guardian_phone', // <--- ÚTIL: Para que el botón "Llamar" funcione
                 DB::raw("CONCAT(g.first_name, ' ', g.last_name) as guardian_name"),
                 'd.uid as device_uid',
                 'u.name as triggered_by_user_name'
@@ -179,6 +181,42 @@ class PanicController extends Controller
             'success' => true,
             'message' => 'Evento de pánico marcado como resuelto',
             'panic_id' => $panicId
+        ]);
+    }
+    /**
+     * POST /api/panic/events/{id}/acknowledge
+     * Marcar que un usuario está atendiendo la alerta
+     */
+    public function acknowledge($panicId, Request $request)
+    {
+        $user = $request->user();
+
+        // 1. Verificar existencia
+        $exists = DB::table('panic_events')->where('id', $panicId)->exists();
+        if (!$exists) {
+            return response()->json(['error' => 'Evento no encontrado'], 404);
+        }
+
+        // 2. Actualizar el evento principal (quién la está atendiendo)
+        DB::table('panic_events')
+            ->where('id', $panicId)
+            ->update([
+                'resolved_by_user_id' => $user->id, // Lo usamos para saber quién lo tiene "en proceso"
+                'updated_at' => now(),
+            ]);
+
+        // 3. Registrar la acción en la tabla de historial (MUY IMPORTANTE para tu estructura)
+        DB::table('panic_event_actions')->insert([
+            'panic_event_id' => $panicId,
+            'action_type' => 'ack',
+            'user_id' => $user->id,
+            'note' => 'El operador ha comenzado a atender la alerta.',
+            'created_at' => now()
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Ahora estás atendiendo esta alerta'
         ]);
     }
 }
