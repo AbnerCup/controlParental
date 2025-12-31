@@ -1,3 +1,16 @@
-.dashboard-header {
+/* .dashboard-header {
     background: linear-gradient(135deg, #2563eb, #1e40af);
+} */
+.dashboard-header {
+    background: linear-gradient(135deg, #1e293b 0%, #3b82f6 100%);
+    border: none;
+}
+
+.card {
+    border-radius: 15px;
+    transition: transform 0.2s ease;
+}
+
+.card:hover {
+    transform: translateY(-5px);
 }

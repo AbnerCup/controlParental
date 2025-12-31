@@ -4,6 +4,13 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import Login from './pages/Login/Login';
 import Dashboard from './pages/Dashboard/Dashboard';
 import './App.css';
+import MainLayout from './components/MainLayout/MainLayout';
+import PanicRoom from './pages/PanicRoom/PanicRoom';
+import Students from './pages/Students/Students';
+import Attendance from './pages/Attendance/Attendance';
+import Reports from './pages/Reports/Reports';
+import Schools from './pages/Schools/Schools';
+import ProtectedRoute from './components/ProtectedRoute/ProtectedRoute';
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -34,74 +41,55 @@ function App() {
     window.location.href = '/login';
   };
 
-  if (loading) {
-    return (
-      <div className="d-flex justify-content-center align-items-center min-vh-100">
-        <div className="spinner-border text-primary" role="status">
-          <span className="visually-hidden">Cargando...</span>
-        </div>
-      </div>
-    );
-  }
+  if (loading) return <div className="spinner-border"></div>;
 
   return (
     <Router>
       <div className="App">
-        {isAuthenticated && (
-          <nav className="navbar navbar-dark bg-primary shadow-sm">
-            <div className="container-fluid">
-              <div className="d-flex align-items-center">
-                <i className="bi bi-shield-check text-white fs-4 me-2"></i>
-                <span className="navbar-brand mb-0">SchoolTrack</span>
-              </div>
-              <div className="d-flex align-items-center">
-                <div className="text-white me-3">
-                  <i className="bi bi-person-circle me-1"></i>
-                  {user?.name || 'Administrador'}
-                </div>
-                <button className="btn btn-outline-light btn-sm" onClick={handleLogout}>
-                  <i className="bi bi-box-arrow-right me-1"></i>
-                  Salir
-                </button>
-              </div>
-            </div>
-          </nav>
-        )}
-
         <Routes>
-          <Route
-            path="/login"
-            element={
-              !isAuthenticated ?
-                <Login onLogin={handleLogin} /> :
-                <Navigate to="/dashboard" replace />
-            }
-          />
-          <Route
-            path="/dashboard"
-            element={
-              isAuthenticated ?
-                <Dashboard user={user} /> :
-                <Navigate to="/login" replace />
-            }
-          />
+          {/* RUTA PÚBLICA */}
+          <Route path="/login" element={
+            !isAuthenticated ? <Login onLogin={handleLogin} /> : <Navigate to="/dashboard" replace />
+          } />
 
-          <Route
-            path="/"
-            element={
-              <Navigate to={isAuthenticated ? "/dashboard" : "/login"} replace />
-            }
-          />
+          {/* RUTAS PROTEGIDAS CON SIDEBAR */}
+          {isAuthenticated ? (
+            <Route element={<MainLayout user={user} handleLogout={handleLogout} />}>
+
+              {/* 1. Rutas Accesibles por TODOS los autenticados */}
+              <Route path="/dashboard" element={<Dashboard user={user} />} />
+
+              {/* 2. Rutas solo para ADMIN, SCHOOL_ADMIN y OPERATOR */}
+              <Route element={
+                <ProtectedRoute isAllowed={['admin', 'school_admin', 'operator'].includes(user?.primary_role?.toLowerCase())} redirectTo="/dashboard" />
+              }>
+                <Route path="/panicRoom" element={<PanicRoom />} />
+                <Route path="/students" element={<Students />} />
+                <Route path="/attendance" element={<Attendance />} />
+              </Route>
+
+              {/* 3. Rutas solo para ADMIN y SCHOOL_ADMIN (Reportes) */}
+              <Route element={
+                <ProtectedRoute isAllowed={['admin', 'school_admin'].includes(user?.primary_role?.toLowerCase())} redirectTo="/dashboard" />
+              }>
+                <Route path="/reports" element={<Reports />} />
+              </Route>
+
+              {/* 4. Rutas EXCLUSIVAS del SuperAdmin (ADMIN GLOBAL) */}
+              <Route element={
+                <ProtectedRoute isAllowed={user?.primary_role?.toLowerCase() === 'admin'} redirectTo="/dashboard" />
+              }>
+                <Route path="/schools" element={<Schools />} />
+                <Route path="/gateways" element={<div>Página de Gateways</div>} />
+              </Route>
+
+            </Route>
+          ) : (
+            <Route path="*" element={<Navigate to="/login" replace />} />
+          )}
+
+          <Route path="/" element={<Navigate to={isAuthenticated ? "/dashboard" : "/login"} replace />} />
         </Routes>
-
-        {isAuthenticated && (
-          <footer className="mt-5 py-3 text-center text-muted border-top">
-            <small>
-              <i className="bi bi-code-slash me-1"></i>
-              SchoolTrack v1.0 | Usuario: {user?.email || 'demo'}
-            </small>
-          </footer>
-        )}
       </div>
     </Router>
   );

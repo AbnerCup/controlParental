@@ -2,8 +2,10 @@
 import React, { useState } from 'react';
 import api from '../../config/axios';
 import './Login.css';
+import { useNavigate } from 'react-router-dom';
 
 const Login = ({ onLogin }) => {
+    const navigate = useNavigate();
     const [credentials, setCredentials] = useState({
         email: '',
         password: ''
@@ -12,6 +14,7 @@ const Login = ({ onLogin }) => {
     const [error, setError] = useState('');
 
     const handleSubmit = async (e) => {
+
         e.preventDefault();
         setLoading(true);
         setError('');
@@ -25,9 +28,14 @@ const Login = ({ onLogin }) => {
 
                 onLogin(response.data.user);
 
-                window.location.href = '/dashboard';
+                navigate('/dashboard');
             }
         } catch (err) {
+            console.error(err);
+            setError('Error al iniciar sesión');
+        }
+        finally {
+            setLoading(false);
         }
     };
 
