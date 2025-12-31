@@ -151,16 +151,6 @@ class DemoSchoolSeeder extends Seeder
                     'active' => true,
                 ]);
             }
-
-            $this->command->info('--- DEMO SEED COMPLETO ---');
-            $this->command->info("Escuela: {$school->name} ({$school->timezone})");
-            $this->command->info("Grado: {$grade->name}");
-            $this->command->info("Estudiante: {$student->first_name} {$student->last_name} [code={$student->student_code}]");
-            $this->command->info("Device UID: {$device->uid}");
-            $this->command->info("API Client key_id: {$apiClient->key_id}");
-            $this->command->warn("API Client SECRET (usa este valor para firmar HMAC): {$secret}");
-            $this->command->info("Hoy lectivo (local): {$todayLocal}");
-            $this->command->info('---------------------------');
         });
     }
 }

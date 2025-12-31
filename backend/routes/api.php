@@ -2,104 +2,76 @@
 
 use App\Http\Controllers\Api\AttendanceController;
 use App\Http\Controllers\Api\DashboardController;
+use App\Http\Controllers\Api\LoginController;
 use App\Http\Controllers\Api\PanicController;
 use App\Http\Controllers\Api\ReportController;
 use App\Http\Controllers\Api\SchoolController;
 use App\Http\Controllers\Api\StudentController;
-use App\Models\User;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\DeviceGatewayController;
-use Illuminate\Http\Request;
 
+// --- RUTAS PÚBLICAS O DE DISPOSITIVOS ---
 Route::post('/gateway/device-events', [DeviceGatewayController::class, 'ingest']);
+Route::post('/login', [LoginController::class, 'login']);
 
-Route::post('/login', function (Request $request) {
-    $request->validate([
-        'email' => 'required|email',
-        'password' => 'required'
-    ]);
-
-    try {
-        $user = User::where('email', $request->email)->first();
-
-        if (!$user) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Usuario no encontrado'
-            ], 401);
-        }
-
-        if (!Hash::check($request->password, $user->password)) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Contraseña incorrecta'
-            ], 401);
-        }
-
-        $roles = $user->roles()->pluck('key')->toArray();
-        $schools = $user->schools()->pluck('schools.id', 'schools.name')->toArray();
-
-        $token = $user->createToken('api-token')->plainTextToken;
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Login exitoso',
-            'token' => $token,
-            'user' => [
-                'id' => $user->id,
-                'name' => $user->name,
-                'email' => $user->email,
-                'roles' => $roles,
-                'schools' => $schools,
-                'primary_role' => count($roles) > 0 ? $roles[0] : 'user',
-                'primary_school_id' => count($schools) > 0 ? array_values($schools)[0] : null
-            ]
-        ]);
-
-    } catch (\Exception $e) {
-        \Log::error('Error en login: ' . $e->getMessage());
-
-        return response()->json([
-            'success' => false,
-            'message' => 'Error interno del servidor'
-        ], 500);
-    }
-});
-
-
+// --- RUTAS PROTEGIDAS ---
 Route::middleware('auth:sanctum')->group(function () {
+
+    // --- MÓDULO: GESTIÓN GLOBAL (Normalmente Super Admin) ---
     Route::prefix('admin')->group(function () {
-        Route::get('/students', [StudentController::class, 'index']);
+
+        // Escuelas
+        Route::middleware('permission:schools.manage')->group(function () {
+            Route::get('/schools', [SchoolController::class, 'index']);
+            Route::get('/schools/{id}', [SchoolController::class, 'show']);
+            Route::post('/schools', [SchoolController::class, 'store']);
+            Route::put('/schools/{id}', [SchoolController::class, 'update']);
+            Route::delete('/schools/{id}', [SchoolController::class, 'destroy']);
+        });
+
+        // Usuarios Administrativos
+        Route::middleware('permission:users.manage')->group(function () {
+            Route::post('/users', [UserController::class, 'store']);
+            Route::post('/assign-school-admin', [UserController::class, 'assignToSchool']);
+        });
+
+        // --- MÓDULO: GESTIÓN ESCOLAR (Admin de Escuela / Operador) ---
+
+        // Alumnos
+        Route::middleware('permission:students.manage')->group(function () {
+            Route::get('/students', [StudentController::class, 'index']);
+            Route::get('/schools/{schoolId}/students', [SchoolController::class, 'students']);
+        });
+
+        // Asistencias y Reportes
+        Route::get('/dashboard', [DashboardController::class, 'stats']); // Dashboard general
+
+        Route::middleware('permission:attendance.view')->group(function () {
+            Route::get('/attendance', [AttendanceController::class, 'index']);
+            Route::post('/attendance/manual', [AttendanceController::class, 'storeManual']);
+
+            // Sub-prefijo para Reportes
+            Route::prefix('reports')->group(function () {
+                Route::get('/daily', [ReportController::class, 'daily']);
+                Route::get('/range', [ReportController::class, 'range']);
+                Route::get('/lates', [ReportController::class, 'lateReport']);
+                Route::get('/absences', [ReportController::class, 'absenceReport']);
+            });
+        });
+
+        // Pánico
+        Route::middleware('permission:panics.manage')->prefix('panic')->group(function () {
+            Route::get('/events', [PanicController::class, 'list']);
+            Route::post('/events/{id}/resolve', [PanicController::class, 'resolve']);
+            Route::post('/events/{id}/acknowledge', [PanicController::class, 'acknowledge']);
+        });
     });
 
-    // Para padres
-    Route::get('/parent/students', [AttendanceController::class, 'myStudents']);
-    Route::get('/parent/attendance/{studentId}', [AttendanceController::class, 'studentAttendance']);
-
-
-    Route::get('/admin/dashboard', [DashboardController::class, 'stats']);
-
-    // Escuelas
-    Route::get('/admin/schools', [SchoolController::class, 'index']);
-    Route::get('/admin/schools/{schoolId}/students', [SchoolController::class, 'students']);
-
-    // Asistencias
-    Route::get('/admin/attendance', [AttendanceController::class, 'index']);
-    Route::post('/admin/attendance/manual', [AttendanceController::class, 'storeManual']);
-
-    // Reportes
-    Route::prefix('admin/reports')->group(function () {
-        Route::get('/daily', [ReportController::class, 'daily']);
-        Route::get('/range', [ReportController::class, 'range']);
-        Route::get('/lates', [ReportController::class, 'lateReport']);
-        Route::get('/absences', [ReportController::class, 'absenceReport']);
+    // --- MÓDULO: PADRES / TUTORES (No requieren "manage", solo sus datos) ---
+    Route::prefix('parent')->group(function () {
+        Route::get('/students', [AttendanceController::class, 'myStudents']);
+        Route::get('/attendance/{studentId}', [AttendanceController::class, 'studentAttendance']);
+        Route::post('/panic/trigger', [PanicController::class, 'trigger']); // Los padres pueden disparar pánico
     });
-    // routes/api.php - dentro de auth:sanctum
-    Route::prefix('panic')->group(function () {
-        Route::post('/trigger', [PanicController::class, 'trigger']);
-        Route::get('/events', [PanicController::class, 'list']);
-        Route::post('/events/{id}/resolve', [PanicController::class, 'resolve']);
-        Route::post('/events/{id}/acknowledge', [PanicController::class, 'acknowledge']);
-    });
+
 });
-

@@ -39,4 +39,10 @@ class User extends Authenticatable
     {
         return $this->hasOne(Student::class);
     }
+    public function hasPermission($permissionKey)
+    {
+        return $this->roles()->whereHas('permissions', function ($query) use ($permissionKey) {
+            $query->where('key', $permissionKey);
+        })->exists();
+    }
 }
