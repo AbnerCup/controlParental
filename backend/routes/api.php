@@ -5,6 +5,7 @@ use App\Http\Controllers\Api\DashboardController;
 use App\Http\Controllers\Api\PanicController;
 use App\Http\Controllers\Api\ReportController;
 use App\Http\Controllers\Api\SchoolController;
+use App\Http\Controllers\Api\StudentController;
 use App\Models\User;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\DeviceGatewayController;
@@ -67,6 +68,10 @@ Route::post('/login', function (Request $request) {
 
 
 Route::middleware('auth:sanctum')->group(function () {
+    Route::prefix('admin')->group(function () {
+        Route::get('/students', [StudentController::class, 'index']);
+    });
+
     // Para padres
     Route::get('/parent/students', [AttendanceController::class, 'myStudents']);
     Route::get('/parent/attendance/{studentId}', [AttendanceController::class, 'studentAttendance']);

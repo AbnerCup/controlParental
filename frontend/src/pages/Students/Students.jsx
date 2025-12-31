@@ -1,16 +1,31 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { apiService } from '../../services/apiService';
 
 const Students = () => {
-    // Mockup basado en tu modelo: students + device_assignments
-    const [students, setStudents] = useState([
-        { id: 1, name: "Mateo García", grade: "3ro Primaria", student_code: "ST-001", device_uid: "A1-B2-C3", status: "Active" },
-        { id: 2, name: "Sofía López", grade: "2do Primaria", student_code: "ST-002", device_uid: null, status: "No Device" },
-        { id: 3, name: "Lucas Rojas", grade: "4to Primaria", student_code: "ST-003", device_uid: "D4-E5-F6", status: "Active" },
-    ]);
 
     const [showAssignModal, setShowAssignModal] = useState(false);
     const [selectedStudent, setSelectedStudent] = useState(null);
     const [newDeviceUid, setNewDeviceUid] = useState("");
+
+    const [students, setStudents] = useState([])
+    const [loading, setLoading] = useState(false)
+
+    const fetchStudents = async () => {
+        setLoading(true)
+        try {
+            const response = await apiService.getStudents()
+            setStudents(response.data.data)
+            console.log(response.data.data);
+
+        } catch (error) {
+            console.error('Error al cargar estudiantes:', error)
+        } finally {
+            setLoading(false)
+        }
+    }
+    useEffect(() => {
+        fetchStudents()
+    }, [])
 
     const openAssignModal = (student) => {
         setSelectedStudent(student);
@@ -76,7 +91,7 @@ const Students = () => {
                                             </div>
                                         </td>
                                         <td><code className="text-dark">{s.student_code}</code></td>
-                                        <td>{s.grade}</td>
+                                        <td>{s.grade?.name}</td>
                                         <td>
                                             {s.device_uid ? (
                                                 <span className="badge bg-light text-dark border"><i className="bi bi-cpu me-1"></i> {s.device_uid}</span>

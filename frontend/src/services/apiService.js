@@ -8,6 +8,9 @@ export const apiService = {
     // DASHBOARD
     getDashboardStats: () => api.get('/admin/dashboard'),
 
+    //STUDENTS
+    getStudents: () => api.get('/admin/students'),
+
     // ATTENDANCE
     getAttendance: (params) => api.get('/admin/attendance', { params }),
     markAttendance: (data) => api.post('/admin/attendance/manual', data),

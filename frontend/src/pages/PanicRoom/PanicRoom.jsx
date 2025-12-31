@@ -10,7 +10,6 @@ const PanicRoom = () => {
     const fetchEvents = useCallback(async () => {
         try {
             const response = await apiService.getPanicEvents();
-            // Extraer el array de la respuesta paginada de Laravel
             const data = response.data?.data || response.data;
             setEvents(Array.isArray(data) ? data : []);
         } catch (error) {
