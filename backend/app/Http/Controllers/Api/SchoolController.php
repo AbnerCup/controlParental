@@ -20,9 +20,7 @@ class SchoolController extends Controller
                     ->orWhere('code', 'like', "%{$search}%");
             });
         }
-        if ($request->has('status')) {
-            $query->where('status', $request->input('status'));
-        }
+        $query->where('status', 'active');
         $perPage = $request->input('per_page', 10);
         $schools = $query->orderBy('created_at', 'desc')
             ->paginate($perPage);

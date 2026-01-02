@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { apiService } from '../../services/apiService';
-
+import { toast } from 'sonner';
+import Swal from 'sweetalert2';
 const Schools = () => {
     const [schools, setSchools] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -36,7 +37,6 @@ const Schools = () => {
                 setSchools(response.data.data);
                 setPagination(response.data.pagination);
             }
-            console.log(response.data);
 
         } catch (error) {
             console.error("Error cargando escuelas:", error);
@@ -51,37 +51,66 @@ const Schools = () => {
         setShowModal(false);
         setTimeout(() => setShowModal(true), 10);
     };
+    const handleOpenEdit = (school) => {
+        console.log(school);
+
+        setEditMode(true); // Activamos modo edición
+        setCurrentId(school.id); // Guardamos el ID de la escuela a editar    
+        setFormData({
+            name: school.name,
+            code: school.code,
+            city: school.city,
+            address: school.address || '',
+            status: school.status || 'active'
+        });
+
+        setShowModal(true);
+    };
     const handleSubmit = async (e) => {
         e.preventDefault();
-        console.log("1. El formulario se envió");
-        console.log("2. Datos a enviar:", formData);
         setLoading(true);
         try {
             let response;
-            console.log("3. Intentando llamar al servicio...");
             if (editMode) {
                 response = await apiService.updateSchool(currentId, formData);
             } else {
                 response = await apiService.createSchool(formData);
             }
-            console.log("4. Respuesta recibida:", response);
             if (response.status === 200 || response.status === 201) {
                 setShowModal(false);
                 setFormData({ name: '', code: '', city: '', address: '', status: 'active' });
                 await fetchSchools();
-                alert(editMode ? "¡Escuela actualizada con éxito!" : "¡Escuela registrada correctamente!");
+                toast.success(editMode ? '¡Escuela actualizada!' : '¡Escuela creada!');
             }
         } catch (error) {
-            console.error("Error en la operación:", error);
-            const errorMessage = error.response?.data?.message || "Ocurrió un error inesperado al guardar.";
-            alert("Error: " + errorMessage);
-            console.error("Error en la operación:", error);
-
+            toast.error(error.response?.data?.message || "Error en la operación");
         } finally {
             setLoading(false);
         }
     };
 
+    const handleDelete = async (id) => {
+        const result = await Swal.fire({
+            title: '¿Eliminar escuela?',
+            text: "Esta acción borrará los datos permanentemente.",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#dc3545',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: 'Sí, eliminar',
+            cancelButtonText: 'Cancelar'
+        });
+
+        if (result.isConfirmed) {
+            try {
+                await apiService.deleteSchool(id);
+                toast.success('Escuela eliminada');
+                fetchSchools();
+            } catch (error) {
+                toast.error('No se pudo eliminar la escuela');
+            }
+        }
+    };
     useEffect(() => {
         const delayDebounceFn = setTimeout(() => {
             fetchSchools(1, searchTerm);
@@ -160,11 +189,26 @@ const Schools = () => {
                                     </div>
 
                                     <div className="d-flex gap-2 mt-4">
-                                        <button className="btn btn-light rounded-pill flex-grow-1 border">
-                                            <i className="bi bi-pencil me-2"></i> Editar
+                                        {/* Botón Editar */}
+                                        <button
+                                            onClick={() => handleOpenEdit(school)}
+                                            className="btn btn-sm btn-outline-primary rounded-pill px-3"
+                                        >
+                                            <i className="bi bi-pencil-square me-1"></i> Editar
                                         </button>
-                                        <button className="btn btn-outline-primary rounded-pill flex-grow-1">
+
+                                        {/* Botón Estudiantes */}
+                                        <button className="btn btn-sm btn-outline-primary rounded-pill flex-grow-1">
                                             <i className="bi bi-people me-2"></i> Estudiantes
+                                        </button>
+
+                                        {/* Botón Eliminar - NUEVO */}
+                                        <button
+                                            onClick={() => handleDelete(school.id)}
+                                            className="btn btn-sm btn-outline-danger rounded-pill px-3"
+                                            title="Eliminar Escuela"
+                                        >
+                                            <i className="bi bi-trash"></i>
                                         </button>
                                     </div>
                                 </div>
@@ -197,7 +241,13 @@ const Schools = () => {
 
                             {/* Cabecera */}
                             <div className="modal-header bg-light border-0 p-4">
-                                <h5 className="fw-bold mb-0">Nueva Unidad Educativa</h5>
+                                <h5 className="fw-bold mb-0">
+                                    {editMode ? (
+                                        <span><i className="bi bi-pencil text-primary me-2"></i>Editar Institución</span>
+                                    ) : (
+                                        <span><i className="bi bi-plus-circle text-success me-2"></i>Nueva Institución</span>
+                                    )}
+                                </h5>
                                 <button type="button" className="btn-close" onClick={() => setShowModal(false)}></button>
                             </div>
 

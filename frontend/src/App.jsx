@@ -11,6 +11,7 @@ import Attendance from './pages/Attendance/Attendance';
 import Reports from './pages/Reports/Reports';
 import Schools from './pages/Schools/Schools';
 import ProtectedRoute from './components/ProtectedRoute/ProtectedRoute';
+import { Toaster } from 'sonner';
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -45,6 +46,7 @@ function App() {
 
   return (
     <Router>
+      <Toaster position="top-right" richColors closeButton />
       <div className="App">
         <Routes>
           {/* RUTA PÚBLICA */}
