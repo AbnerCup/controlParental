@@ -31,8 +31,8 @@ Route::middleware('auth:sanctum')->group(function () {
 
         // Usuarios Administrativos
         Route::middleware('permission:users.manage')->group(function () {
-            Route::post('/users', [UserController::class, 'store']);
-            Route::post('/assign-school-admin', [UserController::class, 'assignToSchool']);
+            /*             Route::post('/users', [UserController::class, 'store']);
+                        Route::post('/assign-school-admin', [UserController::class, 'assignToSchool']); */
         });
 
         // --- MÓDULO: GESTIÓN ESCOLAR (Admin de Escuela / Operador) ---

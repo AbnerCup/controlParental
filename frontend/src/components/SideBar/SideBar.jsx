@@ -3,45 +3,67 @@ import { NavLink } from 'react-router-dom';
 const SideBar = ({ user, onLogout }) => {
     const [isExpanded, setIsExpanded] = useState(true);
 
-    const menuConfig = {
-        // SUPERADMIN (Tú/Soporte): Control total de la infraestructura
-        admin: [
+    // 1. Normalizar el rol para evitar errores de mayúsculas o nulos
+    const userRoleKey = user?.primary_role?.toLowerCase() || 'student';
+
+    // 2. Definición de bloques de menú por responsabilidad
+    const menuBlocks = {
+        // Módulos exclusivos de infraestructura y administración global
+        super_admin: [
             { label: 'Dashboard Global', icon: 'bi-grid-fill', path: '/dashboard' },
             { label: 'Escuelas', icon: 'bi-building', path: '/schools' },
-            { label: 'Clientes API', icon: 'bi-shield-lock', path: '/gateways' }, // HMAC keys
-            { label: 'Reportes Sistema', icon: 'bi-graph-up', path: '/reports' }
+            { label: 'Gateways HMAC', icon: 'bi-shield-lock', path: '/gateways' },
         ],
-
-        // ADMIN DE ESCUELA (Director): Control de su propia institución
-        school_admin: [
+        // Módulos de gestión institucional (Directores y Administradores)
+        school_management: [
             { label: 'Panel Control', icon: 'bi-speedometer2', path: '/dashboard' },
             { label: 'Panic Room', icon: 'bi-exclamation-octagon-fill', path: '/panicRoom' },
             { label: 'Asistencia', icon: 'bi-calendar-check', path: '/attendance' },
             { label: 'Estudiantes', icon: 'bi-people', path: '/students' },
             { label: 'Reportes', icon: 'bi-bar-chart-line', path: '/reports' }
         ],
-
-        // OPERADOR (Seguridad/Secretaría): Monitoreo y acción rápida
+        // Módulos operativos (Seguridad y monitoreo)
         operator: [
             { label: 'Panic Room', icon: 'bi-exclamation-octagon-fill', path: '/panicRoom' },
             { label: 'Asistencia Hoy', icon: 'bi-calendar-check', path: '/attendance' },
             { label: 'Estudiantes', icon: 'bi-people', path: '/students' }
         ],
-
-        // PADRE (Guardian): Solo sus hijos
-        guardian: [
+        // Módulos para padres y alumnos
+        family: [
             { label: 'Mis Hijos', icon: 'bi-person-badge', path: '/my-children' },
-            { label: 'Asistencia', icon: 'bi-calendar3', path: '/child-attendance' },
-            { label: 'Alertar Pánico', icon: 'bi-exclamation-triangle-fill', path: '/panic-trigger' }
-        ],
-        student: [
             { label: 'Asistencia', icon: 'bi-calendar3', path: '/child-attendance' },
             { label: 'Alertar Pánico', icon: 'bi-exclamation-triangle-fill', path: '/panic-trigger' }
         ]
     };
 
-    const userRoleKey = user?.roles?.[0] || 'student';
-    const menuItems = menuConfig[userRoleKey] || [];
+    // 3. Lógica Maestra: Construcción del array según el rol
+    let rawMenuItems = [];
+
+    switch (userRoleKey) {
+        case 'super_admin':
+            // Super Admin ve gestión global + gestión escolar
+            rawMenuItems = [...menuBlocks.super_admin, ...menuBlocks.school_management];
+            break;
+        case 'admin':
+        case 'school_admin':
+            rawMenuItems = menuBlocks.school_management;
+            break;
+        case 'operator':
+            rawMenuItems = menuBlocks.operator;
+            break;
+        case 'guardian':
+        case 'student':
+            rawMenuItems = menuBlocks.family;
+            break;
+        default:
+            rawMenuItems = [];
+    }
+
+    // 4. ELIMINACIÓN DE DUPLICADOS Y LIMPIEZA
+    // Usamos el 'path' como identificador único para que no se repita el Dashboard
+    const menuItems = rawMenuItems.filter((item, index, self) =>
+        index === self.findIndex((t) => t.path === item.path)
+    );
     return (
         <div className={`d-flex flex-column vh-100 bg-dark text-white shadow transition-all ${isExpanded ? 'w-250' : 'w-80'}`}
             style={{

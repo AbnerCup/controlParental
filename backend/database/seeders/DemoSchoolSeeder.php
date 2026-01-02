@@ -43,23 +43,29 @@ class DemoSchoolSeeder extends Seeder
 
             $roleIds = Role::pluck('id', 'key');
 
+            $superAdmin = User::firstOrCreate(
+                ['email' => 'super_admin@demo.local'],
+                ['name' => 'Super Admin Demo', 'password' => Hash::make('123qwe!'), 'status' => 'active']
+            );
+
             $admin = User::firstOrCreate(
                 ['email' => 'admin@demo.local'],
-                ['name' => 'Admin Demo', 'password' => Hash::make('Password123!'), 'status' => 'active']
+                ['name' => 'Admin Demo', 'password' => Hash::make('123qwe!'), 'status' => 'active']
             );
             $schoolAdmin = User::firstOrCreate(
                 ['email' => 'soledad.admin@demo.local'],
-                ['name' => 'Soledad Admin', 'password' => Hash::make('Password123!'), 'status' => 'active']
+                ['name' => 'Soledad Admin', 'password' => Hash::make('123qwe!'), 'status' => 'active']
             );
             $operator = User::firstOrCreate(
                 ['email' => 'oscar.operator@demo.local'],
-                ['name' => 'Oscar Operator', 'password' => Hash::make('Password123!'), 'status' => 'active']
+                ['name' => 'Oscar Operator', 'password' => Hash::make('123qwe!'), 'status' => 'active']
             );
             $guardianUser = User::firstOrCreate(
                 ['email' => 'gabriela.guardian@demo.local'],
-                ['name' => 'Gabriela Guardian', 'password' => Hash::make('Password123!'), 'status' => 'active']
+                ['name' => 'Gabriela Guardian', 'password' => Hash::make('123qwe!'), 'status' => 'active']
             );
 
+            $superAdmin->roles()->syncWithoutDetaching([$roleIds['super_admin'] ?? null]);
             $admin->roles()->syncWithoutDetaching([$roleIds['admin'] ?? null]);
             $schoolAdmin->roles()->syncWithoutDetaching([$roleIds['school_admin'] ?? null]);
             $operator->roles()->syncWithoutDetaching([$roleIds['operator'] ?? null]);

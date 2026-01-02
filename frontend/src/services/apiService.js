@@ -26,8 +26,17 @@ export const apiService = {
     acknowledgePanic: (id) => api.post(`/panic/events/${id}/acknowledge`),
 
     // SCHOOLS
-    getSchools: () => api.get('/admin/schools'),
+    getSchools: (params) => api.get('/admin/schools', { params }),
+    // Crear escuela
+    createSchool: (data) => api.post('/admin/schools', data),
+    // Obtener escuela
+    getSchool: (id) => api.get(`/admin/schools/${id}`),
+    // Actualizar escuela
+    updateSchool: (id, data) => api.put(`/admin/schools/${id}`, data),
+    // Eliminar escuela
+    deleteSchool: (id) => api.delete(`/admin/schools/${id}`),
     getSchoolStudents: (schoolId) => api.get(`/admin/schools/${schoolId}/students`),
+
 
     // PARENT
     getParentStudents: () => api.get('/parent/students'),

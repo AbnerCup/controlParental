@@ -61,7 +61,7 @@ function App() {
 
               {/* 2. Rutas solo para ADMIN, SCHOOL_ADMIN y OPERATOR */}
               <Route element={
-                <ProtectedRoute isAllowed={['admin', 'school_admin', 'operator'].includes(user?.primary_role?.toLowerCase())} redirectTo="/dashboard" />
+                <ProtectedRoute isAllowed={['super_admin', 'admin', 'school_admin', 'operator'].includes(user?.primary_role?.toLowerCase())} redirectTo="/dashboard" />
               }>
                 <Route path="/panicRoom" element={<PanicRoom />} />
                 <Route path="/students" element={<Students />} />
@@ -70,14 +70,14 @@ function App() {
 
               {/* 3. Rutas solo para ADMIN y SCHOOL_ADMIN (Reportes) */}
               <Route element={
-                <ProtectedRoute isAllowed={['admin', 'school_admin'].includes(user?.primary_role?.toLowerCase())} redirectTo="/dashboard" />
+                <ProtectedRoute isAllowed={['super_admin', 'admin', 'school_admin'].includes(user?.primary_role?.toLowerCase())} redirectTo="/dashboard" />
               }>
                 <Route path="/reports" element={<Reports />} />
               </Route>
 
               {/* 4. Rutas EXCLUSIVAS del SuperAdmin (ADMIN GLOBAL) */}
               <Route element={
-                <ProtectedRoute isAllowed={user?.primary_role?.toLowerCase() === 'admin'} redirectTo="/dashboard" />
+                <ProtectedRoute isAllowed={['super_admin', 'admin'].includes(user?.primary_role?.toLowerCase())} redirectTo="/dashboard" />
               }>
                 <Route path="/schools" element={<Schools />} />
                 <Route path="/gateways" element={<div>Página de Gateways</div>} />
